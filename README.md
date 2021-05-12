@@ -194,9 +194,7 @@ fun `DADO que nao tenho notas cadastradas QUANDO busco um unico registro ENTAO n
 * **QUANDO busco um unico registro**: agora é hora de executar a ação de buscar e para isso devemos criar na interface NotesDao o método que faz isso.
 * **ENTAO nao devera retornar registros**: o resultado deve ser nulo, uma vez que não haja registros no banco de dados. 
 
-<BR>
-
-## Finalizando a Configuração do ROOM
+### Finalizando a Configuração do ROOM
 
 As configurações do ROOM virão a medida que os testes forem pedindo. No primeiro teste necessitamos criar o método **dao.getByID(1)**. Faremos da seguinte forma:
 
@@ -233,8 +231,6 @@ abstract class NotesDatabase : RoomDatabase() {
 ```
 
 Pronto! Bora rodar esse teste!
-
-<BR>
 
 ## Implementando demais Testes
 
