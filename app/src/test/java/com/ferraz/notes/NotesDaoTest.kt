@@ -1,10 +1,10 @@
 package com.ferraz.notes
 
+import android.database.sqlite.SQLiteConstraintException
 import android.os.Build.VERSION_CODES.Q
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.HiltTestApplication
-import dagger.hilt.android.testing.UninstallModules
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -28,7 +28,7 @@ import javax.inject.Inject
  * @Config(sdk = [Q], application = HiltTestApplication::class) -> Configurações do Robolectric e uso do HiltTestApplication
  */
 
-@UninstallModules(AppModule::class)
+//@UninstallModules(AppModule::class)
 @HiltAndroidTest
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [Q], application = HiltTestApplication::class)
@@ -63,8 +63,12 @@ class NotesDaoTest : TestCase() {
         db.close()
     }
 
+    /**
+     * Recuperacao
+     */
+
     @Test
-    fun `DADO que nao cadastrei notas QUANDO busco uma nota nao registrada ENTAO deve retornar NULL`() = runBlocking {
+    fun `DADO que nao tenho notas cadastradas QUANDO busco um unico registro ENTAO nao devera retornar registros`() = runBlocking {
 
         // QUANDO
         val register = dao.getByID(1)
@@ -74,7 +78,7 @@ class NotesDaoTest : TestCase() {
     }
 
     @Test
-    fun `DADO que nao cadastrei notas QUANDO busca todos os registros ENTAO deve retornar uma lista vazia`() = runBlocking {
+    fun `DADO que nao tenho notas cadastradas QUANDO busco todos os registros ENTAO nao devera retornar registros`() = runBlocking {
 
         // QUANDO
         val all = dao.getAll()
@@ -84,45 +88,29 @@ class NotesDaoTest : TestCase() {
     }
 
     @Test
-    fun `DADO que cadastrei tres notas QUANDO busco o segundo registro ENTAO deve retorna-lo`() = runBlocking {
+    fun `DADO que tenho notas cadastradas QUANDO busco um unico registro ENTAO devera retornar o registro`() = runBlocking {
 
         // DADO
         dao.insert(
             NotesEntity(description = "Cartao 1"),
-            NotesEntity(description = "Cartao 2"),
-            NotesEntity(description = "Cartao 3")
+            NotesEntity(description = "Cartao 2")
         )
 
         // QUANDO
-        val register = dao.getByID(dao.getAll()[1].uid!!)
+        val register = dao.getByID(1)
 
         // ENTAO
         assert(register != null)
-        assert(register!!.description == "Cartao 2")
+        assert(register!!.description == "Cartao 1")
     }
 
     @Test
-    fun `DADO que cadastrei uma nota QUANDO busco todos os registros ENTAO deve retornar uma lista contendo a nota`() = runBlocking {
-
-        // DADO
-        dao.insert(NotesEntity(description = "Cartao 1"))
-
-        // QUANDO
-        val all = dao.getAll()
-
-        // ENTAO
-        assert(!all.isNullOrEmpty())
-        assert(all.first().description == "Cartao 1")
-    }
-
-    @Test
-    fun `DADO que cadastrei tres notas QUANDO busco todos os registros ENTAO deve retornar uma lista contendo as tres notas`() = runBlocking {
+    fun `DADO que tenho notas cadastradas QUANDO busco todos os registros ENTAO devera retornar registros`() = runBlocking {
 
         // DADO
         dao.insert(
             NotesEntity(description = "Cartao 1"),
-            NotesEntity(description = "Cartao 2"),
-            NotesEntity(description = "Cartao 3")
+            NotesEntity(description = "Cartao 2")
         )
 
         // QUANDO
@@ -132,18 +120,65 @@ class NotesDaoTest : TestCase() {
         assert(!all.isNullOrEmpty())
         assert(all[0].description == "Cartao 1")
         assert(all[1].description == "Cartao 2")
-        assert(all[2].description == "Cartao 3")
+    }
+
+    /**
+     * Insercao
+     */
+
+    @Test
+    fun `DADO que nao tenho notas cadastradas QUANDO cadastro um unico registro ENTAO ele devera ser persistido no banco de dados`() = runBlocking {
+
+        // QUANDO
+        dao.insert(NotesEntity(description = "Cartao 1"))
+
+        // ENTAO
+        val register = dao.getByID(dao.getAll()[0].uid!!)
+        assert(register != null)
+        assert(register!!.description == "Cartao 1")
     }
 
     @Test
-    fun `DADO que cadastrei uma unica nota QUANDO deleto essa nota ENTAO deve retornar uma lista vazia`() = runBlocking {
-
-        // DADO
-        dao.insert(NotesEntity(description = "Cartao 1"))
-        val inserted = dao.getAll().first()
+    fun `DADO que nao tenho notas cadastradas QUANDO cadastro varios registros ENTAO eles deverao ser persistidos no banco de dados`() = runBlocking {
 
         // QUANDO
-        dao.delete(inserted)
+        dao.insert(
+            NotesEntity(description = "Cartao 1"),
+            NotesEntity(description = "Cartao 2"),
+            NotesEntity(description = "Cartao 3")
+        )
+
+        // ENTAO
+        val all = dao.getAll()
+        assert(!all.isNullOrEmpty())
+        assert(all[0].description == "Cartao 1")
+        assert(all[1].description == "Cartao 2")
+        assert(all[2].description == "Cartao 3")
+    }
+
+    @Test(expected = SQLiteConstraintException::class)
+    fun `DADO que tenho notas cadastradas QUANDO cadastro um unico registro que ja existe ENTAO ele devera retornar erro`() = runBlocking {
+
+        // DADO
+        dao.insert(
+            NotesEntity(description = "Cartao 1"),
+            NotesEntity(description = "Cartao 2")
+        )
+
+        // QUANDO
+        dao.insert(NotesEntity(uid = 1, description = "Cartao 1"))
+    }
+
+
+    /**
+     * Delecao
+     */
+
+    @Test
+    fun `DADO que nao tenho notas cadastradas QUANDO deleto um unico registro ENTAO nao devera alterar os registros do banco de dados`() = runBlocking {
+
+        // QUANDO
+        dao.delete(NotesEntity(uid = 1, description = "Cartao 1"))
 
         // ENTAO
         val all = dao.getAll()
@@ -151,11 +186,33 @@ class NotesDaoTest : TestCase() {
     }
 
     @Test
-    fun `DADO que cadastrei duas notas QUNDO deleto essas notas ENTAO deve retornar uma lista vazia`() = runBlocking {
+    fun `DADO que tenho notas cadastradas QUANDO deleto um unico registro ENTAO ele devera ser deletado do banco de dados`() = runBlocking {
 
         // DADO
-        dao.insert(NotesEntity(description = "Cartao 1"))
-        dao.insert(NotesEntity(description = "Cartao 2"))
+        dao.insert(
+            NotesEntity(description = "Cartao 1"),
+            NotesEntity(description = "Cartao 2")
+        )
+        val inserted = dao.getAll().first()
+
+        // QUANDO
+        dao.delete(inserted)
+
+        // ENTAO
+        val all = dao.getAll()
+        assert(!all.isNullOrEmpty())
+        assert(!all.contains(inserted))
+    }
+
+    @Test
+    fun `DADO que tenho notas cadastradas QUANDO deleto todos os registros ENTAO eles deverao ser deletados do banco de dados`() = runBlocking {
+
+        // DADO
+        dao.insert(
+            NotesEntity(description = "Cartao 1"),
+            NotesEntity(description = "Cartao 2"),
+            NotesEntity(description = "Cartao 3")
+        )
 
         // QUANDO
         dao.delete(*dao.getAll().toTypedArray())
@@ -165,40 +222,41 @@ class NotesDaoTest : TestCase() {
         assert(all.isNullOrEmpty())
     }
 
-    @Test
-    fun `DADO que cadastrei duas notas QUNDO deleto uma delas ENTAO deve retornar uma lista com a nota nao deletada`() = runBlocking {
+    /**
+     * Atualizacap
+     */
 
-        // DADO
-        dao.insert(NotesEntity(description = "Cartao 1"))
-        dao.insert(NotesEntity(description = "Cartao 2"))
+    @Test
+    fun `DADO que nao tenho notas cadastradas QUANDO atualizo um unico registro ENTAO nao devera alterar os registros do banco de dados`() = runBlocking {
 
         // QUANDO
-        dao.delete(dao.getAll().first())
+        dao.update(NotesEntity(uid = 1, description = "Cartao 1"))
 
         // ENTAO
         val all = dao.getAll()
-        assert(!all.isNullOrEmpty())
-        assert(all[0].description == "Cartao 2")
+        assert(all.isNullOrEmpty())
     }
 
     @Test
-    fun `DADO que cadatrei uma nota QUANDO atualizo essa nota ENTAO deve retornar uma lista com a nota atualizada`() = runBlocking {
+    fun `DADO que tenho notas cadastradas QUANDO atualizo um registro ENTAO ele devera ser atualizado no banco de dados`() = runBlocking {
 
         // DADO
         dao.insert(NotesEntity(description = "Cartao 1"))
 
         // QUANDO
-        val inserted = dao.getAll().first()
-        dao.update(inserted.copy(description = "Cartao 2"))
+        dao.getAll()[0].also {
+            dao.update(it.copy(description = "Cartao 1 Atualizado"))
+        }
 
         // ENTAO
-        val all = dao.getAll()
-        assert(!all.isNullOrEmpty())
-        assert(all.first().description == "Cartao 2")
+        val registers = dao.getAll()
+        assert(!registers.isNullOrEmpty())
+        assert(registers[0].description == "Cartao 1 Atualizado")
+
     }
 
     @Test
-    fun `DADO que cadastrei duas notas QUANDO atualizo essas notas ENTAO deve retornar uma lista com duas notas atualizadas`() = runBlocking {
+    fun `DADO que tenho notas cadastradas QUANDO atualizo todos os registros ENTAO eles deverao ser atualizados no banco de dados`() = runBlocking {
 
         // DADO
         dao.insert(
@@ -218,4 +276,5 @@ class NotesDaoTest : TestCase() {
         assert(all[0].description == "Cartao 1 Atualizado")
         assert(all[1].description == "Cartao 2 Atualizado")
     }
+
 }

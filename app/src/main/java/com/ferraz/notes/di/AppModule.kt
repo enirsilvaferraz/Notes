@@ -1,14 +1,6 @@
-package com.ferraz.notes
+package com.ferraz.notes.di
 
-import android.content.Context
-import androidx.room.Room
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ApplicationComponent
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Singleton
-
+/*
 @Module
 @InstallIn(ApplicationComponent::class)
 object AppModule {
@@ -21,3 +13,5 @@ object AppModule {
     fun provideAppDatabase(@ApplicationContext appContext: Context): NotesDatabase =
         Room.databaseBuilder(appContext, NotesDatabase::class.java, "database").build()
 }
+
+ */

@@ -1,8 +1,9 @@
-package com.ferraz.notes
+package com.ferraz.notes.di
 
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.ferraz.notes.NotesDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
