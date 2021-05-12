@@ -30,6 +30,9 @@ import javax.inject.Inject
 @Config(sdk = [Q], application = HiltTestApplication::class)
 class NotesDaoTest : TestCase() {
 
+    /**
+     * Usado para injetar os componentes do Hilt
+     */
     @get:Rule
     var hiltRule = HiltAndroidRule(this)
 
@@ -39,11 +42,17 @@ class NotesDaoTest : TestCase() {
     @Inject
     lateinit var dao: NotesDao
 
+    /**
+     * Ao iniciar cada teste regerar as intancias do banco de dados
+     */
     @Before
     fun init() {
         hiltRule.inject()
     }
 
+    /**
+     * Fechar o banco ao terminar os testes
+     */
     @After
     @Throws(IOException::class)
     fun closeDB() {
@@ -53,33 +62,41 @@ class NotesDaoTest : TestCase() {
     @Test
     fun `DADO que nao cadastrei notas QUANDO busca todos os registros ENTAO deve retornar uma lista vazia`() = runBlocking {
 
+        // QUANDO
         val all = dao.getAll()
 
+        // ENTAO
         assert(all.isNullOrEmpty())
     }
 
     @Test
-    fun `Deve retornar uma lista contendo um cartao`() = runBlocking {
+    fun `DADO que cadastrei uma nota QUANDO busco todos os registros ENTAO deve retornar uma lista contendo a nota`() = runBlocking {
 
+        // DADO
         dao.insert(NotesEntity(description = "Cartao 1"))
 
+        // QUANDO
         val all = dao.getAll()
 
+        // ENTAO
         assert(!all.isNullOrEmpty())
         assert(all.first().description == "Cartao 1")
     }
 
     @Test
-    fun `Deve retornar uma lista contendo tres cartoes`() = runBlocking {
+    fun `DADO que cadastrei tres notas QUANDO busco todos os registros ENTAO deve retornar uma lista contendo as tres notas`() = runBlocking {
 
+        // DADO
         dao.insert(
             NotesEntity(description = "Cartao 1"),
             NotesEntity(description = "Cartao 2"),
             NotesEntity(description = "Cartao 3")
         )
 
+        // QUANDO
         val all = dao.getAll()
 
+        // ENTAO
         assert(!all.isNullOrEmpty())
         assert(all[0].description == "Cartao 1")
         assert(all[1].description == "Cartao 2")
@@ -87,44 +104,69 @@ class NotesDaoTest : TestCase() {
     }
 
     @Test
-    fun `Deve retornar uma lista vazia apos deletar um cartao`() = runBlocking {
+    fun `DADO que cadastrei uma unica nota QUANDO deleto essa nota ENTAO deve retornar uma lista vazia`() = runBlocking {
 
+        // DADO
         dao.insert(NotesEntity(description = "Cartao 1"))
         val inserted = dao.getAll().first()
+
+        // QUANDO
         dao.delete(inserted)
 
+        // ENTAO
         val all = dao.getAll()
-
         assert(all.isNullOrEmpty())
     }
 
     @Test
-    fun `Deve retornar uma lista vazia apos deletar dois cartoes`() = runBlocking {
+    fun `DADO que cadastrei duas notas QUNDO deleto essas notas ENTAO deve retornar uma lista vazia`() = runBlocking {
 
+        // DADO
         dao.insert(NotesEntity(description = "Cartao 1"))
         dao.insert(NotesEntity(description = "Cartao 2"))
+
+        // QUANDO
         dao.delete(*dao.getAll().toTypedArray())
 
+        // ENTAO
         val all = dao.getAll()
-
         assert(all.isNullOrEmpty())
     }
 
     @Test
-    fun `Deve retornar uma lista com um cartao atualizado`() = runBlocking {
+    fun `DADO que cadastrei duas notas QUNDO deleto uma delas ENTAO deve retornar uma lista com a nota nao deletada`() = runBlocking {
 
+        // DADO
         dao.insert(NotesEntity(description = "Cartao 1"))
+        dao.insert(NotesEntity(description = "Cartao 2"))
+
+        // QUANDO
+        dao.delete(dao.getAll().first())
+
+        // ENTAO
+        val all = dao.getAll()
+        assert(!all.isNullOrEmpty())
+        assert(all[0].description == "Cartao 2")
+    }
+
+    @Test
+    fun `DADO que cadatrei uma nota QUANDO atualizo essa nota ENTAO deve retornar uma lista com a nota atualizada`() = runBlocking {
+
+        // DADO
+        dao.insert(NotesEntity(description = "Cartao 1"))
+
+        // QUANDO
         val inserted = dao.getAll().first()
         dao.update(inserted.copy(description = "Cartao 2"))
 
+        // ENTAO
         val all = dao.getAll()
-
         assert(!all.isNullOrEmpty())
         assert(all.first().description == "Cartao 2")
     }
 
     @Test
-    fun `Deve retornar uma lista com dois cartoes atualizados`() = runBlocking {
+    fun `DADO que cadastrei duas notas QUANDO atualizo essas notas ENTAO deve retornar uma lista com duas notas atualizadas`() = runBlocking {
 
         dao.insert(
             NotesEntity(description = "Cartao 1"),
