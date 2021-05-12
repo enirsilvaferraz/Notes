@@ -16,4 +16,7 @@ interface NotesDao {
 
     @Query("SELECT * FROM NOTES")
     suspend fun getAll(): List<NotesEntity>
+
+    @Query("SELECT * FROM NOTES WHERE uid = :uid")
+    suspend fun getByID(uid: Int): NotesEntity?
 }

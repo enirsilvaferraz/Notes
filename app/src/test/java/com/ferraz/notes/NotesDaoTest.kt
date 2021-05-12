@@ -60,6 +60,16 @@ class NotesDaoTest : TestCase() {
     }
 
     @Test
+    fun `DADO que nao cadastrei notas QUANDO busco uma nota nao registrada ENTAO deve retornar NULL`() = runBlocking {
+
+        // QUANDO
+        val register = dao.getByID(1)
+
+        // ENTAO
+        assert(register == null)
+    }
+
+    @Test
     fun `DADO que nao cadastrei notas QUANDO busca todos os registros ENTAO deve retornar uma lista vazia`() = runBlocking {
 
         // QUANDO
@@ -67,6 +77,24 @@ class NotesDaoTest : TestCase() {
 
         // ENTAO
         assert(all.isNullOrEmpty())
+    }
+
+    @Test
+    fun `DADO que cadastrei tres notas QUANDO busco o segundo registro ENTAO deve retorna-lo`() = runBlocking {
+
+        // DADO
+        dao.insert(
+            NotesEntity(description = "Cartao 1"),
+            NotesEntity(description = "Cartao 2"),
+            NotesEntity(description = "Cartao 3")
+        )
+
+        // QUANDO
+        val register = dao.getByID(dao.getAll()[1].uid!!)
+
+        // ENTAO
+        assert(register != null)
+        assert(register!!.description == "Cartao 2")
     }
 
     @Test
@@ -168,18 +196,20 @@ class NotesDaoTest : TestCase() {
     @Test
     fun `DADO que cadastrei duas notas QUANDO atualizo essas notas ENTAO deve retornar uma lista com duas notas atualizadas`() = runBlocking {
 
+        // DADO
         dao.insert(
             NotesEntity(description = "Cartao 1"),
             NotesEntity(description = "Cartao 2")
         )
 
+        // QUANDO
         dao.update(
             dao.getAll()[0].copy(description = "Cartao 1 Atualizado"),
             dao.getAll()[1].copy(description = "Cartao 2 Atualizado")
         )
 
+        // ENTAO
         val all = dao.getAll()
-
         assert(!all.isNullOrEmpty())
         assert(all[0].description == "Cartao 1 Atualizado")
         assert(all[1].description == "Cartao 2 Atualizado")
