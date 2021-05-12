@@ -1,4 +1,4 @@
-package com.ferraz.notes
+package com.ferraz.notes.database
 
 import android.database.sqlite.SQLiteConstraintException
 import android.os.Build.VERSION_CODES.Q

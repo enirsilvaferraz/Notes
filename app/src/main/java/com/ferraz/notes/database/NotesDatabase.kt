@@ -1,4 +1,4 @@
-package com.ferraz.notes
+package com.ferraz.notes.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
