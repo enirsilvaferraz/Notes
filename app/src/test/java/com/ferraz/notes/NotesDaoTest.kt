@@ -18,6 +18,10 @@ import java.io.IOException
 import javax.inject.Inject
 
 /**
+ * =================================================================================================
+ * TEST CASE: Testar insersao, atualizacao, delecao e consulta de notas no banco de dados
+ * =================================================================================================
+ *
  * @UninstallModules(AppModule::class) -> Remove o modulo hilt da aplicação e passa a usar o modulo de teste
  * @HiltAndroidTest -> Indica que pode-se usar injeção de dependencias Hilt nos testes unitários
  * @RunWith(RobolectricTestRunner::class) -> Uso do Robolectric para obter o context via Provider
@@ -43,7 +47,7 @@ class NotesDaoTest : TestCase() {
     lateinit var dao: NotesDao
 
     /**
-     * Ao iniciar cada teste regerar as intancias do banco de dados
+     * Ao iniciar cada teste regerar novas intancias do banco de dados
      */
     @Before
     fun init() {
