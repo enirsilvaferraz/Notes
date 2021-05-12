@@ -1,31 +1,47 @@
 package com.ferraz.notes
 
-import android.content.Context
 import android.os.Build.VERSION_CODES.Q
-import androidx.room.Room
-import androidx.test.core.app.ApplicationProvider
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
+import dagger.hilt.android.testing.HiltTestApplication
+import dagger.hilt.android.testing.UninstallModules
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.IOException
+import javax.inject.Inject
 
+/**
+ * @UninstallModules(AppModule::class) -> Remove o modulo hilt da aplicação e passa a usar o modulo de teste
+ * @HiltAndroidTest -> Indica que pode-se usar injeção de dependencias Hilt nos testes unitários
+ * @RunWith(RobolectricTestRunner::class) -> Uso do Robolectric para obter o context via Provider
+ * @Config(sdk = [Q], application = HiltTestApplication::class) -> Configurações do Robolectric e uso do HiltTestApplication
+ */
+
+@UninstallModules(AppModule::class)
+@HiltAndroidTest
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [Q])
+@Config(sdk = [Q], application = HiltTestApplication::class)
 class NotesDaoTest : TestCase() {
 
-    private lateinit var dao: NotesDao
-    private lateinit var db: NotesDatabase
+    @get:Rule
+    var hiltRule = HiltAndroidRule(this)
+
+    @Inject
+    lateinit var db: NotesDatabase
+
+    @Inject
+    lateinit var dao: NotesDao
 
     @Before
-    fun createDB() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, NotesDatabase::class.java).build()
-        dao = db.getNotesDao()
+    fun init() {
+        hiltRule.inject()
     }
 
     @After
@@ -35,7 +51,7 @@ class NotesDaoTest : TestCase() {
     }
 
     @Test
-    fun `Deve retornar uma lista vazia de cartoes`() = runBlocking {
+    fun `DADO que nao cadastrei notas QUANDO busca todos os registros ENTAO deve retornar uma lista vazia`() = runBlocking {
 
         val all = dao.getAll()
 
