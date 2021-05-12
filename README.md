@@ -174,7 +174,7 @@ class NotesDaoTest : TestCase() {
 
 <BR>
 
-## Implementando o Primeiro Teste
+### Implementando o Primeiro Teste
 
 Seguindo a lista de testes, o primeiro diz respeito a consulta de dados e pode ser implementado da seguinte forma.
 
@@ -190,11 +190,15 @@ fun `DADO que nao tenho notas cadastradas QUANDO busco um unico registro ENTAO n
 }
 ```
 
+<BR>
+
 * **DADO que nao tenho notas cadastradas**: o banco de dados inicia-se zerado, portanto não há necessidade de deletar registros anteriormente adicionados.
 * **QUANDO busco um unico registro**: agora é hora de executar a ação de buscar e para isso devemos criar na interface NotesDao o método que faz isso.
 * **ENTAO nao devera retornar registros**: o resultado deve ser nulo, uma vez que não haja registros no banco de dados. 
 
-### Finalizando a Configuração do ROOM
+<BR>
+
+## Finalizando a Configuração do ROOM
 
 As configurações do ROOM virão a medida que os testes forem pedindo. No primeiro teste necessitamos criar o método **dao.getByID(1)**. Faremos da seguinte forma:
 
@@ -231,6 +235,8 @@ abstract class NotesDatabase : RoomDatabase() {
 ```
 
 Pronto! Bora rodar esse teste!
+
+<BR>
 
 ## Implementando demais Testes
 
