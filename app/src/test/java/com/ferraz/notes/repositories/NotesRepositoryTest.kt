@@ -21,7 +21,7 @@ import javax.inject.Inject
 @HiltAndroidTest
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [Build.VERSION_CODES.Q], application = HiltTestApplication::class)
-class NotesRepositoryLocalTest : TestCase() {
+class NotesRepositoryTest : TestCase() {
 
     /**
      * Usado para injetar os componentes do Hilt
@@ -34,7 +34,7 @@ class NotesRepositoryLocalTest : TestCase() {
     var dao: NotesDao = mockk()
 
     @Inject
-    lateinit var repository: NotesRepository //= NotesRepositoryLocal(dao)
+    lateinit var repository: NotesRepository
 
     /**
      * Ao iniciar cada teste regerar novas intancias do banco de dados
