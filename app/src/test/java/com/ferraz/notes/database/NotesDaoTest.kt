@@ -28,7 +28,6 @@ import javax.inject.Inject
  * @Config(sdk = [Q], application = HiltTestApplication::class) -> Configurações do Robolectric e uso do HiltTestApplication
  */
 
-//@UninstallModules(AppModule::class)
 @HiltAndroidTest
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [Q], application = HiltTestApplication::class)
