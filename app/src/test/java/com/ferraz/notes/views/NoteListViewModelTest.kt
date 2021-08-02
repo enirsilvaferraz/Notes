@@ -53,6 +53,15 @@ class NoteListViewModelTest : TestCase() {
 
         // ENTAO
         coVerify(exactly = 1) { repository.getNotes() }
+        /*
+        viewModel.notes.observe(){
+            when (it.getState()) {
+                NoteListViewModel.State.LOADING -> TODO()
+                NoteListViewModel.State.SUCCESS -> TODO()
+                NoteListViewModel.State.FAILURE -> TODO()
+            }
+        }
+         */
 
     }
 }
