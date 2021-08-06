@@ -5,6 +5,8 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.GridCells
@@ -14,36 +16,49 @@ import androidx.compose.material.Card
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ferraz.notes.database.NotesEntity
+import com.ferraz.notes.views.ui.theme.DarkColors
+import com.ferraz.notes.views.ui.theme.LightColors
 import com.ferraz.notes.views.ui.theme.NotesTheme
 import com.ferraz.notes.views.ui.theme.Shapes
 import com.ferraz.notes.views.ui.theme.Typography
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class NoteListActivity : AppCompatActivity() {
+
+    //private val notesVM: NoteListViewModel by viewModels()
 
     @ExperimentalUnitApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
 
-            val notesVM: NoteListViewModel = viewModel()
+            val systemUiController = rememberSystemUiController()
+            val inDarkMode = isSystemInDarkTheme()
+
+            SideEffect {
+                systemUiController.setSystemBarsColor(
+                    color = if (inDarkMode) DarkColors.background else LightColors.background,
+                    darkIcons = !inDarkMode
+                )
+            }
+
+            /*
             notesVM.notes.observeAsState().value?.let { state ->
 
                 when (state) {
@@ -65,39 +80,61 @@ class NoteListActivity : AppCompatActivity() {
                     }
                 }
             }
+             */
+            NotesAppScreen()
         }
     }
 
     @ExperimentalUnitApi
-    @Preview(showBackground = true)
+    @Preview(showBackground = true, name = "App Main Screen")
     @Composable
-    fun AppPreview(noteView: List<NotesEntity> = MockHelper.items) {
+    fun NotesAppScreen(noteView: List<NotesEntity> = MockHelper.items) {
         NotesTheme {
-            Surface(color = MaterialTheme.colors.background) {
-                Scaffold(
-                    topBar = { NotesTopAppBar() },
-                    content = { NoteGrid(noteView) },
-                    bottomBar = { NotesBottomAppBar() },
-                    floatingActionButton = { NotesFAB() },
-                    isFloatingActionButtonDocked = true,
-                    floatingActionButtonPosition = FabPosition.End,
-                )
-            }
+            Scaffold(
+                topBar = { NotesTopAppBar() },
+                bottomBar = { NotesBottomAppBar() },
+                floatingActionButton = { NotesFAB() },
+                isFloatingActionButtonDocked = true,
+                floatingActionButtonPosition = FabPosition.End,
+                content = {
+                    NoteGrid(noteView)
+                },
+            )
         }
     }
 
     @Composable
-    fun NotesTopAppBar() = TopAppBar(
-        title = { Text(text = "Notes") },
-        backgroundColor = MaterialTheme.colors.background,
-        elevation = 0.dp
-    )
+    fun NotesTopAppBar() {
+        TopAppBar(
+            title = {
+
+                ConstraintLayout(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(end = 16.dp)
+                ) {
+
+                    val (header) = createRefs()
+                    Text(
+                        text = "Notes",
+                        style = Typography.h5,
+                        modifier = Modifier.constrainAs(header) {
+                            centerTo(parent)
+                        }
+                    )
+                }
+
+            },
+            //backgroundColor = MaterialTheme.colors.background,
+            elevation = 0.dp,
+            modifier = Modifier.height(80.dp)
+        )
+    }
 
     @Composable
     private fun NotesFAB() {
         FloatingActionButton(
-            onClick = {},
-            backgroundColor = Color(0xFFFF8C00)
+            onClick = {}
         ) {
             Icon(Icons.Filled.Add, "")
         }
@@ -105,7 +142,10 @@ class NoteListActivity : AppCompatActivity() {
 
     @Composable
     private fun NotesBottomAppBar() {
-        BottomAppBar(content = {}, backgroundColor = MaterialTheme.colors.background, elevation = 4.dp)
+        BottomAppBar(
+            content = {},
+            elevation = 0.dp
+        )
     }
 
     @ExperimentalUnitApi
@@ -114,7 +154,7 @@ class NoteListActivity : AppCompatActivity() {
     fun NoteGrid(notes: List<NotesEntity>) {
         LazyVerticalGrid(
             cells = GridCells.Fixed(2),
-            modifier = Modifier.padding(start = 12.dp, end = 12.dp)
+            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
         ) {
             items(notes.size) { position ->
                 NoteCard(notes[position])
