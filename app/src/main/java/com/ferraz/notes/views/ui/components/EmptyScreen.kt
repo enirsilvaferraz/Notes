@@ -1,4 +1,4 @@
-package com.ferraz.notes.views
+package com.ferraz.notes.views.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +38,7 @@ fun EmptyScreen() = ConstraintLayout(modifier = Modifier.fillMaxSize()) {
             painter = painterResource(id = R.drawable.ic_baseline_view_list_24),
             contentDescription = "Lista Vazia",
             contentScale = ContentScale.Fit,
+            colorFilter = ColorFilter.tint(Color.White),
             modifier = Modifier
                 .width(200.dp)
                 .height(200.dp)
