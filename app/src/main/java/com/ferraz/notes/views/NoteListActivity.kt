@@ -3,9 +3,9 @@ package com.ferraz.notes.views
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -14,17 +14,19 @@ import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.material.BottomAppBar
 import androidx.compose.material.BottomSheetValue.*
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.ExperimentalUnitApi
@@ -35,56 +37,43 @@ import com.ferraz.notes.views.NoteListViewModel.NotesState.*
 import com.ferraz.notes.views.ui.components.EmptyScreen
 import com.ferraz.notes.views.ui.components.LoadingScreen
 import com.ferraz.notes.views.ui.components.NoteCard
-import com.ferraz.notes.views.ui.theme.DarkColors
-import com.ferraz.notes.views.ui.theme.LightColors
+import com.ferraz.notes.views.ui.features.notes.register.NoteDialog
 import com.ferraz.notes.views.ui.theme.NotesTheme
+import com.ferraz.notes.views.ui.theme.StatusBar
 import com.ferraz.notes.views.ui.theme.Typography
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class NoteListActivity : AppCompatActivity() {
 
-    //private val notesVM: NoteListViewModel by viewModels()
+    private val notesVM: NoteListViewModel by viewModels()
 
-    @ExperimentalMaterialApi
     @ExperimentalUnitApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
-
-            val systemUiController = rememberSystemUiController()
-            val inDarkMode = isSystemInDarkTheme()
-
-            SideEffect {
-                systemUiController.setSystemBarsColor(
-                    color = if (inDarkMode) DarkColors.background else LightColors.background,
-                    darkIcons = !inDarkMode
-                )
-            }
-
-            /*
             notesVM.notes.observeAsState().value?.let { state ->
                 NotesAppScreen(state)
             }
-             */
-
-            val state = Success(data = MockHelper.items)
-            //val state = Loading
-
-            NotesAppScreen(state)
         }
+
+        lifecycle.addObserver(notesVM)
     }
 
     @ExperimentalUnitApi
     @Preview(showBackground = true, name = "App Main Screen")
     @Composable
-    fun NotesAppScreen(state: NoteListViewModel.NotesState = Success(data = MockHelper.items), function: (() -> Unit)? = null) {
+    fun NotesAppScreen(state: NoteListViewModel.NotesState = Success(data = MockHelper.items)) {
 
         NotesTheme {
 
+            val openDialog = remember { mutableStateOf(false) }
+
             val floatingActionButton = @Composable {
-                if (state == Empty || state is Success) NotesFAB(function)
+                if (state == Empty || state is Success) NotesFAB {
+                    openDialog.value = true
+                }
             }
 
             val content: @Composable (PaddingValues) -> Unit = {
@@ -98,6 +87,8 @@ class NoteListActivity : AppCompatActivity() {
                 }
             }
 
+            StatusBar()
+
             Scaffold(
                 topBar = { NotesTopAppBar() },
                 //bottomBar = { NotesBottomAppBar() },
@@ -106,6 +97,8 @@ class NoteListActivity : AppCompatActivity() {
                 floatingActionButtonPosition = FabPosition.End,
                 content = content,
             )
+
+            NoteDialog(openDialog)
         }
     }
 
@@ -131,7 +124,7 @@ class NoteListActivity : AppCompatActivity() {
                 }
 
             },
-            //backgroundColor = MaterialTheme.colors.background,
+            backgroundColor = MaterialTheme.colors.background,
             elevation = 0.dp,
             modifier = Modifier.height(80.dp)
         )

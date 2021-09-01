@@ -1,6 +1,11 @@
 package com.ferraz.notes.database
 
-import androidx.room.*
+import androidx.lifecycle.LiveData
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface NotesDao {
@@ -15,8 +20,8 @@ interface NotesDao {
     suspend fun update(vararg entities: NotesEntity)
 
     @Query("SELECT * FROM NOTES")
-    suspend fun getAll(): List<NotesEntity>
+    fun getAll(): LiveData<List<NotesEntity>>
 
     @Query("SELECT * FROM NOTES WHERE uid = :uid")
-    suspend fun getByID(uid: Int): NotesEntity?
+    fun getByID(uid: Int): NotesEntity?
 }

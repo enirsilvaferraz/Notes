@@ -6,5 +6,7 @@ import javax.inject.Inject
 
 class NotesRepository @Inject constructor(private val dao: NotesDao) {
 
-    suspend fun getNotes(): List<NotesEntity> = dao.getAll()
+    fun getNotes() = dao.getAll()
+
+    suspend fun save(entity: NotesEntity) = dao.insert(entity)
 }

@@ -5,6 +5,8 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private val DarkColorPalette = with(DarkColors) {
     darkColors(
@@ -26,17 +28,17 @@ private val DarkColorPalette = with(DarkColors) {
 private val LightColorPalette = with(LightColors) {
     lightColors(
         primary = primary,
-        primaryVariant = primaryVariant,
+        //primaryVariant = primaryVariant,
         secondary = secondary,
-        secondaryVariant = secondaryVariant,
-        background = background,
-        surface = surface,
-        error = error,
-        onPrimary = onPrimary,
-        onSecondary = onSecondary,
-        onBackground = onBackground,
-        onSurface = onSurface,
-        onError = onError
+        //secondaryVariant = secondaryVariant,
+        //background = background,
+        //surface = surface,
+        //error = error,
+        //onPrimary = onPrimary,
+        //onSecondary = onSecondary,
+        //onBackground = onBackground,
+        //onSurface = onSurface,
+        //onError = onError
     )
 }
 
@@ -48,4 +50,17 @@ fun NotesTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable(
         shapes = Shapes,
         content = content
     )
+}
+
+@Composable
+fun StatusBar() {
+    val systemUiController = rememberSystemUiController()
+    val inDarkMode = isSystemInDarkTheme()
+
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color = if (inDarkMode) DarkColors.background else LightColors.background,
+            darkIcons = !inDarkMode
+        )
+    }
 }

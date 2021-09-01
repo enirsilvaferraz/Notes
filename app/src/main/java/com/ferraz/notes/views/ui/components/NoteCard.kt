@@ -24,7 +24,7 @@ import com.ferraz.notes.views.ui.theme.Typography
 fun NoteCard(note: NotesEntity = MockHelper.items[0], onClick: ((note: NotesEntity) -> Unit)? = null) {
 
     Card(
-        shape = Shapes.medium,
+        shape = Shapes.large,
         elevation = 4.dp,
         modifier = Modifier
             .padding(4.dp)
