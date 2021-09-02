@@ -6,25 +6,28 @@ import androidx.compose.material.TextButton
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ferraz.notes.views.NoteListViewModel
 
 @Composable
 fun NoteDialog(
-    openDialogState: MutableState<Boolean> = mutableStateOf(true),
-    vm: NoteRegisterViewModel = viewModel()
+    openDialogState: State<NoteListViewModel.Actions?>,
+    vm: NoteRegisterViewModel = viewModel(),
+    onDismissRequest: () -> Unit
 ) {
 
-    if (openDialogState.value) {
+    if (openDialogState.value is NoteListViewModel.Actions.OpenDialog) {
 
         val textState = remember { mutableStateOf(TextFieldValue()) }
 
         AlertDialog(
             onDismissRequest = {
-                openDialogState.value = false
+                onDismissRequest()
             },
             title = {
                 Text("Nova Nota")
@@ -35,7 +38,7 @@ fun NoteDialog(
             confirmButton = {
                 ConfirmButton(textState) {
                     vm.onConfirm(textState.value.text)
-                    openDialogState.value = false
+                    onDismissRequest()
                 }
             }
         )

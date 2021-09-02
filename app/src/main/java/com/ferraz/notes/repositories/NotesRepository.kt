@@ -9,4 +9,6 @@ class NotesRepository @Inject constructor(private val dao: NotesDao) {
     fun getNotes() = dao.getAll()
 
     suspend fun save(entity: NotesEntity) = dao.insert(entity)
+
+    suspend fun delete(note: NotesEntity) = dao.delete(note)
 }

@@ -1,19 +1,15 @@
 package com.ferraz.notes.views
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
-import androidx.compose.material.BottomAppBar
-import androidx.compose.material.BottomSheetValue.*
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
@@ -24,15 +20,14 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import com.ferraz.notes.database.NotesEntity
 import com.ferraz.notes.views.NoteListViewModel.NotesState.*
 import com.ferraz.notes.views.ui.components.EmptyScreen
 import com.ferraz.notes.views.ui.components.LoadingScreen
@@ -46,59 +41,44 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class NoteListActivity : AppCompatActivity() {
 
-    private val notesVM: NoteListViewModel by viewModels()
+    private val vm: NoteListViewModel by viewModels()
 
     @ExperimentalUnitApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            notesVM.notes.observeAsState().value?.let { state ->
-                NotesAppScreen(state)
-            }
+            NotesAppScreen()
         }
 
-        lifecycle.addObserver(notesVM)
+        lifecycle.addObserver(vm)
     }
 
     @ExperimentalUnitApi
     @Preview(showBackground = true, name = "App Main Screen")
     @Composable
-    fun NotesAppScreen(state: NoteListViewModel.NotesState = Success(data = MockHelper.items)) {
+    fun NotesAppScreen(state: State<NoteListViewModel.NotesState?> = mutableStateOf(Success(data = MockHelper.items))) {
 
         NotesTheme {
-
-            val openDialog = remember { mutableStateOf(false) }
-
-            val floatingActionButton = @Composable {
-                if (state == Empty || state is Success) NotesFAB {
-                    openDialog.value = true
-                }
-            }
-
-            val content: @Composable (PaddingValues) -> Unit = {
-                when (state) {
-                    is Loading -> LoadingScreen()
-                    is Empty -> EmptyScreen()
-                    is Success -> NoteGrid(state.data)
-                    is Failure -> {
-                        // do nothing
-                    }
-                }
-            }
 
             StatusBar()
 
             Scaffold(
                 topBar = { NotesTopAppBar() },
-                //bottomBar = { NotesBottomAppBar() },
-                floatingActionButton = floatingActionButton,
+                floatingActionButton = { NotesFAB(state) },
                 isFloatingActionButtonDocked = true,
                 floatingActionButtonPosition = FabPosition.End,
-                content = content,
+                content = {
+                    when (val value = vm.notes.observeAsState().value) {
+                        is Loading -> LoadingScreen()
+                        is Empty -> EmptyScreen()
+                        is Success -> NoteGrid(value)
+                        is Failure -> {/* do nothing */ }
+                    }
+                }
             )
 
-            NoteDialog(openDialog)
+            NoteDialog(vm.actions.observeAsState()) { vm.onDismissDialog() }
         }
     }
 
@@ -131,37 +111,32 @@ class NoteListActivity : AppCompatActivity() {
     }
 
     @Composable
-    private fun NotesFAB(function: (() -> Unit)?) {
-        FloatingActionButton(
-            onClick = {
-                function?.invoke()
+    private fun NotesFAB(state: State<NoteListViewModel.NotesState?> = mutableStateOf(Empty)) {
+        if (state.value is Empty || state.value is Success) {
+            FloatingActionButton(
+                onClick = { vm.onCardClick() }
+            ) {
+                Icon(Icons.Filled.Add, "")
             }
-        ) {
-            Icon(Icons.Filled.Add, "")
         }
-    }
-
-    @Composable
-    private fun NotesBottomAppBar() {
-        BottomAppBar(
-            content = {},
-            elevation = 0.dp
-        )
     }
 
     @OptIn(ExperimentalFoundationApi::class)
     @ExperimentalUnitApi
     @Composable
-    fun NoteGrid(notes: List<NotesEntity>) {
-        LazyVerticalGrid(
-            cells = GridCells.Fixed(2),
-            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
-        ) {
-            items(notes.size) { position ->
-                NoteCard(notes[position]) { note ->
-                    Toast.makeText(this@NoteListActivity, note.description, Toast.LENGTH_SHORT).show()
+    fun NoteGrid(state: Success = Success(data = MockHelper.items)) {
+
+            LazyVerticalGrid(
+                cells = GridCells.Fixed(2),
+                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+            ) {
+                items(state.data.size) { position ->
+                    NoteCard(
+                        state.data[position],
+                        { note -> vm.onCardClick(note) },
+                        { note -> vm.onCardLongClick(note) },
+                    )
                 }
             }
-        }
     }
 }

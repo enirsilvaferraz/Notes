@@ -1,6 +1,7 @@
 package com.ferraz.notes.views.ui.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,10 +19,15 @@ import com.ferraz.notes.views.MockHelper
 import com.ferraz.notes.views.ui.theme.Shapes
 import com.ferraz.notes.views.ui.theme.Typography
 
+@ExperimentalFoundationApi
 @ExperimentalUnitApi
 @Composable
 @Preview
-fun NoteCard(note: NotesEntity = MockHelper.items[0], onClick: ((note: NotesEntity) -> Unit)? = null) {
+fun NoteCard(
+    note: NotesEntity = MockHelper.items[0],
+    onClick: ((note: NotesEntity) -> Unit)? = null,
+    onLongClick: ((note: NotesEntity) -> Unit)? = null
+) {
 
     Card(
         shape = Shapes.large,
@@ -29,9 +35,14 @@ fun NoteCard(note: NotesEntity = MockHelper.items[0], onClick: ((note: NotesEnti
         modifier = Modifier
             .padding(4.dp)
             .height(110.dp)
-            .clickable {
-                onClick?.invoke(note)
-            }
+            .combinedClickable(
+                onClick = {
+                    onClick?.invoke(note)
+                },
+                onLongClick = {
+                    onLongClick?.invoke(note)
+                }
+            )
     ) {
 
         ConstraintLayout {

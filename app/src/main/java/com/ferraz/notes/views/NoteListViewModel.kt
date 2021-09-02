@@ -3,6 +3,7 @@ package com.ferraz.notes.views
 import androidx.annotation.StringRes
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ferraz.notes.R
@@ -31,10 +32,31 @@ class NoteListViewModel @Inject constructor(private val repository: NotesReposit
         }
     }
 
+    val actions = MutableLiveData<Actions>(Actions.Idle)
+
+    fun onCardLongClick(note: NotesEntity) {
+        viewModelScope.launch {
+            repository.delete(note)
+        }
+    }
+
+    fun onCardClick(note: NotesEntity? = null) {
+        actions.postValue(Actions.OpenDialog(note))
+    }
+
+    fun onDismissDialog() {
+        actions.postValue(Actions.Idle)
+    }
+
     sealed interface NotesState {
         object Loading : NotesState
         object Empty : NotesState
         class Success(val data: List<NotesEntity>) : NotesState
         class Failure(@StringRes val message: Int) : NotesState
+    }
+
+    sealed interface Actions {
+        object Idle : Actions
+        data class OpenDialog(val note: NotesEntity?) : Actions
     }
 }
