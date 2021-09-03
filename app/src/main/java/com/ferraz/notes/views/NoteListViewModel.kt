@@ -1,12 +1,10 @@
 package com.ferraz.notes.views
 
-import androidx.annotation.StringRes
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ferraz.notes.R
 import com.ferraz.notes.database.NotesEntity
 import com.ferraz.notes.repositories.NotesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,22 +15,28 @@ import javax.inject.Inject
 @HiltViewModel
 class NoteListViewModel @Inject constructor(private val repository: NotesRepository) : ViewModel(), LifecycleObserver {
 
+    val actions = MutableLiveData<Actions>(Actions.Idle)
+
+    private val _loading = MutableLiveData(false)
+    val loading = _loading
+
     val notes = MediatorLiveData<NotesState>().apply {
         viewModelScope.launch {
             try {
-                value = NotesState.Loading
-                delay(1500)
+                loading.value = true
+                delay(1000)
+
                 addSource(repository.getNotes()) {
-                    value = if (it.isEmpty()) NotesState.Empty
+                    value = if (it.isEmpty()) NotesState.Empty()
                     else NotesState.Success(data = it)
                 }
             } catch (e: Exception) {
-                value = NotesState.Failure(message = R.string.hello_first_fragment)
+                value = NotesState.Failure(message = e.message ?: "Erro genérico")
             }
+
+            loading.value = false
         }
     }
-
-    val actions = MutableLiveData<Actions>(Actions.Idle)
 
     fun onCardLongClick(note: NotesEntity) {
         viewModelScope.launch {
@@ -48,11 +52,20 @@ class NoteListViewModel @Inject constructor(private val repository: NotesReposit
         actions.postValue(Actions.Idle)
     }
 
+    fun onConfirm(title: String, description: String) {
+        viewModelScope.launch {
+            try {
+                repository.save(NotesEntity(title = title, description = description))
+            } catch (e: Exception) {
+                e.toString()
+            }
+        }
+    }
+
     sealed interface NotesState {
-        object Loading : NotesState
-        object Empty : NotesState
+        class Empty : NotesState
         class Success(val data: List<NotesEntity>) : NotesState
-        class Failure(@StringRes val message: Int) : NotesState
+        class Failure(val message: String) : NotesState
     }
 
     sealed interface Actions {
