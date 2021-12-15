@@ -4,13 +4,8 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
@@ -18,14 +13,11 @@ import androidx.compose.material.AlertDialog
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
-import androidx.compose.material.LinearProgressIndicator
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.TextField
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.rememberScaffoldState
@@ -42,13 +34,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import com.ferraz.notes.views.NoteListViewModel.NotesState.*
 import com.ferraz.notes.views.ui.components.EmptyScreen
 import com.ferraz.notes.views.ui.components.NoteCard
+import com.ferraz.notes.views.ui.components.NotesTopAppBar
 import com.ferraz.notes.views.ui.theme.NotesTheme
 import com.ferraz.notes.views.ui.theme.StatusBar
-import com.ferraz.notes.views.ui.theme.Typography
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -82,7 +73,7 @@ class NoteListActivity : AppCompatActivity() {
         val coroutineState = rememberCoroutineScope()
 
         Scaffold(
-            topBar = { NotesTopAppBar(loading.value) },
+            topBar = { NotesTopAppBar("Notes", loading.value) },
             floatingActionButton = { NotesFAB() },
             floatingActionButtonPosition = FabPosition.End,
             scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState),
@@ -97,52 +88,6 @@ class NoteListActivity : AppCompatActivity() {
                     }
                 }
             }
-        )
-    }
-
-    @ExperimentalAnimationApi
-    @Composable
-    fun NotesTopAppBar(valueState: Boolean?) {
-
-        val content = @Composable {
-
-            ConstraintLayout(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(end = 16.dp)
-            ) {
-
-                val (header, progress) = createRefs()
-
-                Text(
-                    text = "Notes",
-                    style = Typography.h5,
-                    modifier = Modifier.constrainAs(header) {
-                        centerTo(parent)
-                    }
-                )
-
-                AnimatedVisibility(
-                    visible = valueState ?: false,
-                    enter = expandVertically(),
-                    exit = shrinkVertically(),
-                    modifier = Modifier.constrainAs(progress) {
-                        centerAround(parent.bottom)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                        width = Dimension.fillToConstraints
-                    }
-                ) {
-                    LinearProgressIndicator()
-                }
-            }
-        }
-
-        TopAppBar(
-            title = content,
-            backgroundColor = MaterialTheme.colors.background,
-            elevation = 0.dp,
-            modifier = Modifier.height(80.dp)
         )
     }
 
@@ -289,6 +234,6 @@ class NoteListActivity : AppCompatActivity() {
         titleState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue("Texto")),
         descriptionState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue("Texto"))
     ) {
-        DialogContent(titleState, descriptionState)
+        NotesTheme { DialogContent(titleState, descriptionState) }
     }
 }
